@@ -1,18 +1,19 @@
 export interface NewsArticle {
   _id: string;
   title: string;
-  content: string;
-  category?: string;
-  imageUrls?: string[];
   summary: string;
+  content: string;
+  category: string;
   region: string;
   coverPageImg: string | null;
-  language:string;
-  source:string;
-  isPublished:boolean;
-  isDrafted:boolean;
-  createdAt:string;
-  publishedAt:string;
+  imageUrls: string[];
+  language: string;
+  source: string;
+  isPublished: boolean;
+  isDrafted: boolean;
+  publishedAt: string | null; // ISO date string
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
 }
 
 

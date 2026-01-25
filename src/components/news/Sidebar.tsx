@@ -68,7 +68,7 @@ const Sidebar = () => {
   return (
     <aside className="space-y-8">
       {/* Trending Headlines */}
-      <div className="surface-elevated rounded-sm p-5">
+      {/* <div className="surface-elevated rounded-sm p-5">
         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border">
           <TrendingUp className="h-5 w-5 text-accent" />
           <h3 className="font-headline font-semibold text-lg">Trending Headlines</h3>
@@ -85,7 +85,7 @@ const Sidebar = () => {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Most Read */}
       <div className="surface-elevated rounded-sm p-5">

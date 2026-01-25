@@ -71,3 +71,9 @@ export async function uploadWithLimit(files: File[], limit = 5) {
   
   return results;
 }
+
+export async function urlToFile(url) {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new File([blob], "image.jpg", { type: blob.type });
+}

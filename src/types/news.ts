@@ -1,5 +1,7 @@
+import { NewsFormData } from "./admin";
+
 export interface Article {
-  id: string;
+  _id: string;
   title: string;
   summary: string;
   content: string;
@@ -16,32 +18,44 @@ export interface Article {
   updatedAt: string; // ISO date string
 }
 
-export interface NewsState {
-  articles: Article[];
-  selectedArticle: Article | null;
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalArticles: number;
-    limit: number;
-  };
-  filters: {
-    category: string | null;
-    region: string | null;
-    language: string | null;
-    status: "published" | "draft" | "all";
-    searchQuery: string;
-  };
-  loading: {
-    fetchArticles: boolean;
-    createArticle: boolean;
-    updateArticle: boolean;
-    deleteArticle: boolean;
-  };
-  error: {
-    fetchArticles: string | null;
-    createArticle: string | null;
-    updateArticle: string | null;
-    deleteArticle: string | null;
-  };
+export interface FeedState{
+  articles:Article[],
+  cursor:string,
+  hasMore:boolean,
+  loading:boolean,
+  error:string|null
+}
+
+export interface EditorState{
+  draft:Partial<NewsFormData> | null
+  saving:boolean,
+  succcess:boolean,
+  error:string | null
+}
+
+export interface NewsState{
+  feeds:Record<string,FeedState>
+  editor:EditorState,
+  selectedArticle:Article | null //selected for editing
+}
+ 
+
+export interface NewsResponse{
+  articles:Article[],
+  nextCursor:string,
+  hasMore:boolean
+}
+
+export interface FetchNewsPayload{
+  category?:string | null;
+  region?:string | null;
+  mode: "public",
+  reset?:boolean
+}
+export function createFeedKey(payload: FetchNewsPayload) {
+  return [
+    payload.mode,
+    payload.category || "all",
+    payload.region || "all",
+  ].join("|");
 }

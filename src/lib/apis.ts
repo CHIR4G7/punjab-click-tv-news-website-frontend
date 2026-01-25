@@ -76,7 +76,7 @@ export const makeApiRequest = async <T>(
       } as ApiError;
     }
     throw {
-      message: "Unknown error occurred",
+      message: error.message,
       status: 500,
     } as ApiError;
   }
