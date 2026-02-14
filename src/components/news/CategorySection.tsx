@@ -1,12 +1,15 @@
-import NewsCard, { NewsArticle } from "./NewsCard";
+import { Article } from "@/types/news";
+import NewsCard from "./NewsCard";
 
 interface CategorySectionProps {
   title: string;
-  articles: NewsArticle[];
+  articles: Article[];
   viewMoreLink?: string;
 }
 
 const CategorySection = ({ title, articles, viewMoreLink = "#" }: CategorySectionProps) => {
+
+  console.log(viewMoreLink,":",articles.length)
   return (
     <section className="py-8 border-t border-border">
       <div className="flex items-center justify-between mb-6">

@@ -14,6 +14,8 @@ import { ImageIcon, Loader2, Plus, Upload, Video, X } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { regions } from "@/data/constants";
 import ArticleEditor from "../ArticleEditor/ArticleEditor";
+import { useAppDispatch } from "@/store/hooks";
+import { editArticle } from "@/store/news/reducers";
 
 const EditNews = ({
   handleSubmit,
@@ -38,8 +40,13 @@ const EditNews = ({
   imageUrls,
 }) => {
 
+  const existingCoverPageImg = formData.coverPageImg
+  const existingImageUrls = formData.imageUrls
+
+  const dispatch = useAppDispatch()
   const handleNewsChange = (e:React.MouseEvent)=>{
     console.log(formData)
+    dispatch(editArticle(formData))
   }
 
   return (

@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 
-const SERVER_BASE_URL = "http://localhost:3000";
+// const SERVER_BASE_URL = "http://localhost:3000";
+const SERVER_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL
 
 interface ApiResponse<T> {
   data: T;
@@ -69,6 +70,7 @@ export const makeApiRequest = async <T>(
       message: "Request Successful!",
     };
   } catch (error) {
+    console.log(error)
     if (error instanceof Error) {
       throw {
         message: error.message,

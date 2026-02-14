@@ -77,3 +77,23 @@ export async function urlToFile(url) {
   const blob = await res.blob();
   return new File([blob], "image.jpg", { type: blob.type });
 }
+
+export function getTimeAgo(publishedDate: string): string {
+  const now = new Date();
+  const published = new Date(publishedDate);
+  const diffInMs = now.getTime() - published.getTime();
+  
+  const seconds = Math.floor(diffInMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) return "now";
+  if (minutes < 60) return `${minutes}m`;
+  if (hours < 24) return `${hours}h`;
+  if (days < 7) return `${days}d`;
+  if (days < 30) return `${Math.floor(days / 7)}w`;
+  if (days < 365) return `${Math.floor(days / 30)}mo`;
+  console.log(`${Math.floor(days / 365)}y`)
+  return `${Math.floor(days / 365)}y`;
+}

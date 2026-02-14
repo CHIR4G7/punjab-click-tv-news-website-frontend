@@ -4,49 +4,74 @@ import { logout } from "@/store/auth/authSlice";
 import { useNavigate } from "react-router-dom";
 import { makeApiRequest } from "@/lib/apis";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import DOMPurify from "dompurify";
-import {
-  LogOut,
-  Menu,
-  X,
-} from "lucide-react";
-import { formatDate, uploadWithLimit, urlToFile } from "@/lib/utils";
-import { NewsFormData, NewsArticle } from "@/types/admin";
-import { createNewNewsDraft, fetchNews } from "@/store/news/reducers";
+import { LogOut, Menu, X } from "lucide-react";
+import { uploadWithLimit, urlToFile } from "@/lib/utils";
+import { NewsFormData } from "@/types/admin";
+import { createNewNewsDraft, fetchNews, getNewsForAdmin } from "@/store/news/reducers";
 import { Article, createFeedKey } from "@/types/news";
 import SideNewsBlock from "@/components/Card/SideNewsBlock";
 import CreateNews from "@/components/Admin/CreateNews";
 import EditNews from "@/components/Admin/EditNews";
-import { clearSelectedArticle, setSelectedArticle } from "@/store/news/newsSlice";
+import {
+  clearSelectedArticle,
+  setSelectedArticle,
+} from "@/store/news/newsSlice";
+import { ColorRing } from "react-loader-spinner";
 
 const Admin: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
   const { toast } = useToast();
-  const key = createFeedKey({
-    mode: "public",
+
+  const keyDrafted = createFeedKey({
+    mode: "drafted",
     category: "",
     region: "",
   });
-  const feed = useAppSelector((state) => state.news.feeds[key]);
-  const { editor } = useAppSelector((state) => state.news);
-  console.log(editor.error)
-  const articles = feed?.articles || [];
-  const loading = feed?.loading || false;
-  const error = feed?.error;
-  const [cursor, setCursor] = useState<string | null>(null);
 
+  const keyPublished = createFeedKey({
+    mode: "published",
+    category: "",
+    region: "",
+  });
+
+  // ✅ Add proper null checks and default values
+  const feedDrafted = useAppSelector((state) => state.news.feeds[keyDrafted]) || {
+    articleIDs: [],
+    cursor: null,
+    hasMore: true,
+    loading: false,
+    error: null,
+  };
+
+  const feedPublished = useAppSelector((state) => state.news.feeds[keyPublished]) || {
+    articleIDs: [],
+    cursor: null,
+    hasMore: true,
+    loading: false,
+    error: null,
+  };
+
+  const articlesById = useAppSelector((state) => state.news.articlesByID);
+  const { editor } = useAppSelector((state) => state.news);
+
+  // ✅ Add proper null checks for articleIDs and filter out undefined articles
+  const draftedArticles = feedDrafted?.articleIDs?.map((id) => articlesById[id])?.filter(Boolean) || [];
+  const publishedArticles = feedPublished?.articleIDs?.map((id) => articlesById[id])?.filter(Boolean) || [];
+
+  const loadingDrafted = feedDrafted?.loading || false;
+  const errorDrafted = feedDrafted?.error;
+
+  const loadingPublished = feedPublished?.loading || false;
+  const errorPublished = feedPublished?.error;
+
+  const [cursor, setCursor] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  // const [selectedNews, setSelectedNews] = useState<NewsArticle | null>(null);
-  const selectedNews = useAppSelector((state)=>state.news.selectedArticle)
+  const selectedNews = useAppSelector((state) => state.news.selectedArticle);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [articleContent, setArticleContent] = useState<string>("");
 
@@ -70,14 +95,34 @@ const Admin: React.FC = () => {
 
   useEffect(() => {
     dispatch(
-      fetchNews({
-        mode: "public",
+      getNewsForAdmin({
+        mode: "drafted",
         category: "",
         region: "",
-        reset: true,
+        reset: false,
       }),
     );
-  }, [cursor]);
+
+    dispatch(
+      getNewsForAdmin({
+        mode: "published",
+        category: "",
+        region: "",
+        reset: false,
+      }),
+    );
+  }, [dispatch]); // ✅ Remove cursor from dependencies and add dispatch
+
+  useEffect(() => {
+    if (!editor.error) {
+      return;
+    }
+    toast({
+      title: "Error",
+      description: editor.error,
+      variant: "destructive",
+    });
+  }, [editor.error, toast]);
 
   const handleCoverImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -140,6 +185,7 @@ const Admin: React.FC = () => {
       imageUrls: [...prev.imageUrls, ...files],
     }));
   };
+
   const removeCoverImage = () => {
     setFormData((prev) => ({ ...prev, coverPageImg: null }));
     if (coverPageImgRef.current) {
@@ -157,7 +203,6 @@ const Admin: React.FC = () => {
   const isVideoFile = (file: File): boolean => {
     return file.type.startsWith("video/");
   };
-
 
   useEffect(() => {
     const cleanDom = DOMPurify.sanitize(articleContent);
@@ -239,15 +284,41 @@ const Admin: React.FC = () => {
 
         const res = await dispatch(createNewNewsDraft(payload));
         console.log(res);
+        
+        // ✅ Reset form data after successful creation
+        if (createNewNewsDraft.fulfilled.match(res)) {
+          setFormData({
+            title: "",
+            content: "",
+            category: "",
+            imageUrls: [],
+            summary: "",
+            region: "",
+            coverPageImg: null,
+          });
+          setArticleContent("");
+          setPreviewUrl(null);
+          
+          toast({
+            title: "Success",
+            description: "News draft created successfully!",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: res.payload as string || "Failed to create draft",
+            variant: "destructive",
+          });
+        }
+        
         setSubmitting(false);
-      } catch (error) {
+      } catch (error: any) {
         setSubmitting(false);
         toast({
           title: "Error",
           description: error.message || "Failed to upload images",
           variant: "destructive",
         });
-        return;
       }
     }
   };
@@ -262,9 +333,9 @@ const Admin: React.FC = () => {
         title: "Success",
         description: "News deleted successfully",
       });
-      // fetchNews();
-      if (selectedNews?._id === newsId) {
-        dispatch(clearSelectedArticle())
+      
+      if (selectedNews?.id === newsId) {
+        dispatch(clearSelectedArticle());
         setFormData({
           title: "",
           content: "",
@@ -285,27 +356,43 @@ const Admin: React.FC = () => {
   };
 
   // Handle news selection for editing
-  const handleEdit = async (newsItem: Article) =>{
-    dispatch(setSelectedArticle(newsItem))
-    console.log(newsItem)
-    const convFile = await urlToFile(newsItem.coverPageImg)
-    setFormData({
-      title: newsItem.title,
-      content: newsItem.content,
-      category: newsItem.category || "",
-      imageUrls: [],
-      summary: newsItem.summary || "",
-      region: newsItem.region || "",
-      coverPageImg: convFile,
-    });
-    setArticleContent(newsItem.content || "")
+  const handleEdit = async (newsItem: Article) => {
+    dispatch(setSelectedArticle(newsItem));
+    console.log(newsItem);
+    
+    try {
+      const convFile = await urlToFile(newsItem.coverPageImg);
+      setFormData({
+        title: newsItem.title,
+        content: newsItem.content,
+        category: newsItem.category || "",
+        imageUrls: [],
+        summary: newsItem.summary || "",
+        region: newsItem.region || "",
+        coverPageImg: convFile,
+      });
+      setArticleContent(newsItem.content || "");
+    } catch (error) {
+      console.error("Error converting URL to file:", error);
+      // Fallback without cover image file
+      setFormData({
+        title: newsItem.title,
+        content: newsItem.content,
+        category: newsItem.category || "",
+        imageUrls: [],
+        summary: newsItem.summary || "",
+        region: newsItem.region || "",
+        coverPageImg: null,
+      });
+      setArticleContent(newsItem.content || "");
+    }
+    
     setSidebarOpen(false); // Close sidebar on mobile
   };
 
   // Handle new news creation
   const handleNewNews = () => {
-    // setSelectedNews(null);
-    dispatch(clearSelectedArticle())
+    dispatch(clearSelectedArticle());
     setFormData({
       title: "",
       content: "",
@@ -315,8 +402,13 @@ const Admin: React.FC = () => {
       region: "",
       coverPageImg: null,
     });
+    setArticleContent("");
+    setPreviewUrl(null);
     setSidebarOpen(false);
   };
+
+  // ✅ Show loading state while feeds are initializing
+  const isInitialLoading = !feedDrafted && !feedPublished;
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -349,7 +441,8 @@ const Admin: React.FC = () => {
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
             <div className="p-4">
-              {loading ? (
+              {/* ✅ Show proper loading state */}
+              {isInitialLoading || loadingDrafted || loadingPublished ? (
                 <div className="space-y-3">
                   {[...Array(5)].map((_, i) => (
                     <div
@@ -361,28 +454,77 @@ const Admin: React.FC = () => {
                     </div>
                   ))}
                 </div>
-              ) : articles.length === 0 ? (
+              ) : draftedArticles.length === 0 && publishedArticles.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <p>No news articles found.</p>
                   <p className="text-sm mt-1">Create your first article!</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {articles.map((article, index) => {
-                    return (
-                      <SideNewsBlock
-                        data={article}
-                        key={index}
-                        onEdit={handleEdit}
-                      />
-                    );
-                  })}
+                <div className="space-y-6">
+                  {/* Drafts Section */}
+                  <div className="flex flex-col">
+                    <span className="flex justify-center items-center font-bold text-gray-800 pb-2 border-b">
+                      Drafts ({draftedArticles.length})
+                    </span>
+                    
+                    {draftedArticles.length < 1 ? (
+                      <span className="text-sm flex justify-center items-center py-4 text-gray-500">
+                        No Drafts
+                      </span>
+                    ) : (
+                      <div className="mt-2 space-y-2">
+                        {draftedArticles.map((article, index) => (
+                          <SideNewsBlock
+                            data={article}
+                            key={article?.id || index}
+                            onEdit={handleEdit}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Published Section */}
+                  <div className="flex flex-col">
+                    <span className="flex justify-center items-center font-bold text-gray-800 pb-2 border-b">
+                      Published ({publishedArticles.length})
+                    </span>
+                    
+                    {publishedArticles.length < 1 ? (
+                      <span className="text-sm flex justify-center items-center py-4 text-gray-500">
+                        No Published Articles
+                      </span>
+                    ) : (
+                      <div className="mt-2 space-y-2">
+                        {publishedArticles.map((article, index) => (
+                          <SideNewsBlock
+                            data={article}
+                            key={article?.id || index}
+                            onEdit={handleEdit}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ✅ Show error states */}
+              {errorDrafted && (
+                <div className="text-red-600 text-sm p-2 bg-red-50 rounded">
+                  Error loading drafts: {errorDrafted}
+                </div>
+              )}
+              {errorPublished && (
+                <div className="text-red-600 text-sm p-2 bg-red-50 rounded">
+                  Error loading published articles: {errorPublished}
                 </div>
               )}
             </div>
           </ScrollArea>
         </div>
       </div>
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col md:ml-0">
         {/* Top Navigation */}
@@ -422,47 +564,64 @@ const Admin: React.FC = () => {
 
         {/* News Form */}
         <div className="flex-1 overflow-y-auto">
-          {selectedNews ?           <EditNews
-          formData={formData}
-          handleInputChange={handleInputChange}
-          handleSelectChange={handleSelectChange}
-          previewUrl={previewUrl}
-          removeCoverImage={removeCoverImage}
-          coverPageImgRef={coverPageImgRef}
-          uploadingCover={uploadingCover}
-          handleCoverImageSelect={handleCoverImageSelect}
-          uploadMediaRef={uploadMediaRef}
-          uploadingMedia={uploadingMedia}
-          isVideoFile={isVideoFile}
-          removeMediaItem={removeMediaItem}
-          handleMediaFilesSelect={handleCoverImageSelect}
-          submitting={submitting}
-          articleContent={articleContent}
-          setArticleContent={setArticleContent}
-          handleSubmit={handleSubmit}
-          handleNewNews={handleNewNews}
-          coverImgData={selectedNews.coverPageImg}
-          imageUrls={selectedNews.imageUrls}
-          /> :           <CreateNews
-          formData={formData}
-          handleInputChange={handleInputChange}
-          handleSelectChange={handleSelectChange}
-          previewUrl={previewUrl}
-          removeCoverImage={removeCoverImage}
-          coverPageImgRef={coverPageImgRef}
-          uploadingCover={uploadingCover}
-          handleCoverImageSelect={handleCoverImageSelect}
-          uploadMediaRef={uploadMediaRef}
-          uploadingMedia={uploadingMedia}
-          isVideoFile={isVideoFile}
-          removeMediaItem={removeMediaItem}
-          handleMediaFilesSelect={handleCoverImageSelect}
-          submitting={submitting}
-          articleContent={articleContent}
-          setArticleContent={setArticleContent}
-          handleSubmit={handleSubmit}
-          />
-          }
+          {editor.saving && (
+            <div className="absolute top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2 z-50">
+              <ColorRing
+                visible={true}
+                height="80"
+                width="80"
+                ariaLabel="color-ring-loading"
+                wrapperStyle={{}}
+                wrapperClass="color-ring-wrapper"
+                colors={["#e15b64", "#f47e60", "#f8b26a", "#abbd81", "#849b87"]}
+              />
+            </div>
+          )}
+
+          {selectedNews ? (
+            <EditNews
+              formData={formData}
+              handleInputChange={handleInputChange}
+              handleSelectChange={handleSelectChange}
+              previewUrl={previewUrl}
+              removeCoverImage={removeCoverImage}
+              coverPageImgRef={coverPageImgRef}
+              uploadingCover={uploadingCover}
+              handleCoverImageSelect={handleCoverImageSelect}
+              uploadMediaRef={uploadMediaRef}
+              uploadingMedia={uploadingMedia}
+              isVideoFile={isVideoFile}
+              removeMediaItem={removeMediaItem}
+              handleMediaFilesSelect={handleMediaFilesSelect}
+              submitting={submitting}
+              articleContent={articleContent}
+              setArticleContent={setArticleContent}
+              handleSubmit={handleSubmit}
+              handleNewNews={handleNewNews}
+              coverImgData={selectedNews.coverPageImg}
+              imageUrls={selectedNews.imageUrls}
+            />
+          ) : (
+            <CreateNews
+              formData={formData}
+              handleInputChange={handleInputChange}
+              handleSelectChange={handleSelectChange}
+              previewUrl={previewUrl}
+              removeCoverImage={removeCoverImage}
+              coverPageImgRef={coverPageImgRef}
+              uploadingCover={uploadingCover}
+              handleCoverImageSelect={handleCoverImageSelect}
+              uploadMediaRef={uploadMediaRef}
+              uploadingMedia={uploadingMedia}
+              isVideoFile={isVideoFile}
+              removeMediaItem={removeMediaItem}
+              handleMediaFilesSelect={handleMediaFilesSelect}
+              submitting={submitting}
+              articleContent={articleContent}
+              setArticleContent={setArticleContent}
+              handleSubmit={handleSubmit}
+            />
+          )}
         </div>
       </div>
 

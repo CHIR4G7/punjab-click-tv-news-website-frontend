@@ -79,6 +79,7 @@ const Footer = () => {
                     className="hover:text-accent transition-colors"
                     aria-label="Twitter"
                     target="_blank"
+                    key={index}
                   >
                     {getIcon[social.name]}
                   </a>

@@ -1,38 +1,30 @@
 import { TrendingUp } from "lucide-react";
-import NewsCard, { NewsArticle } from "./NewsCard";
+import NewsCard, {  } from "./NewsCard";
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchNews } from "@/store/news/reducers";
+import { createFeedKey } from "@/types/news";
 
-const trendingArticles: NewsArticle[] = [
-  {
-    id: "t1",
-    title: "Breaking: Major Traffic Update for Chandigarh-Delhi Highway",
-    image: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&h=300&fit=crop",
-    category: "Traffic",
-    timeAgo: "30 min ago",
-  },
-  {
-    id: "t2",
-    title: "Punjab Kings Announce New Captain for IPL 2026 Season",
-    image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400&h=300&fit=crop",
-    category: "Sports",
-    timeAgo: "1 hour ago",
-  },
-  {
-    id: "t3",
-    title: "Gold Prices Hit Record High: What Experts Predict Next",
-    image: "https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&h=300&fit=crop",
-    category: "Business",
-    timeAgo: "1 hour ago",
-  },
-  {
-    id: "t4",
-    title: "New Metro Line Connecting Airport to City Center Approved",
-    image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=300&fit=crop",
-    category: "Development",
-    timeAgo: "2 hours ago",
-  },
-];
 
 const TrendingSection = () => {
+  const dispatch = useAppDispatch()
+    const key = createFeedKey({
+      mode: "public",
+      category: "",
+      region: "",
+    });
+  const feed = useAppSelector((state) => state.news.feeds[key]);
+  const articlesById = useAppSelector((state)=>state.news.articlesByID)
+  const trendingArticles = feed?.articleIDs?.map(id => articlesById[id])?.filter(Boolean) || [];
+
+  useEffect(()=>{
+    dispatch(fetchNews({
+      mode:"public",
+      category:"",
+      region:""
+    }))
+  },[])
+
   return (
     <section className="py-8 border-t border-border">
       <div className="flex items-center justify-between mb-6">

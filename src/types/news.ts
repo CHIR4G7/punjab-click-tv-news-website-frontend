@@ -1,7 +1,7 @@
 import { NewsFormData } from "./admin";
 
 export interface Article {
-  _id: string;
+  id: string;
   title: string;
   summary: string;
   content: string;
@@ -18,39 +18,39 @@ export interface Article {
   updatedAt: string; // ISO date string
 }
 
-export interface FeedState{
-  articles:Article[],
-  cursor:string,
-  hasMore:boolean,
-  loading:boolean,
-  error:string|null
+export interface FeedState {
+  articleIDs: string[];
+  cursor: string | null;
+  hasMore: boolean;
+  loading: boolean;
+  error: string | null;
 }
 
-export interface EditorState{
-  draft:Partial<NewsFormData> | null
-  saving:boolean,
-  succcess:boolean,
-  error:string | null
+export interface EditorState {
+  draft: Partial<NewsFormData> | Article | null;
+  saving: boolean;
+  success: boolean;
+  error: string | null;
 }
 
-export interface NewsState{
-  feeds:Record<string,FeedState>
-  editor:EditorState,
-  selectedArticle:Article | null //selected for editing
-}
- 
-
-export interface NewsResponse{
-  articles:Article[],
-  nextCursor:string,
-  hasMore:boolean
+export interface NewsState {
+  articlesByID: Record<string, Article>;
+  feeds: Record<string, FeedState>;
+  editor: EditorState;
+  selectedArticle: Article | null; //selected for editing
 }
 
-export interface FetchNewsPayload{
-  category?:string | null;
-  region?:string | null;
-  mode: "public",
-  reset?:boolean
+export interface NewsResponse {
+  articles: Article[];
+  nextCursor: string;
+  hasMore: boolean;
+}
+
+export interface FetchNewsPayload {
+  category?: string | null;
+  region?: string | null;
+  mode: "public" | "drafted" | "published";
+  reset?: boolean;
 }
 export function createFeedKey(payload: FetchNewsPayload) {
   return [

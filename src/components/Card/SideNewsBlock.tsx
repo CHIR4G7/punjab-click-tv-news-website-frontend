@@ -3,9 +3,11 @@ import { Badge } from '@/components/ui/badge';
 import { Edit, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BookCheck } from 'lucide-react';
+import { publishArticle } from '@/store/news/reducers';
+import { useAppDispatch } from '@/store/hooks';
 interface SideNewsBlockProps {
   data: {
-    _id: string;
+    id: string;
     title: string;
     summary: string;
     content: string;
@@ -26,6 +28,7 @@ interface SideNewsBlockProps {
 
 const SideNewsBlock: React.FC<SideNewsBlockProps> = ({ data, onEdit }) => {
   const {
+    id,
     title,
     summary,
     category,
@@ -35,6 +38,8 @@ const SideNewsBlock: React.FC<SideNewsBlockProps> = ({ data, onEdit }) => {
     isDrafted,
     createdAt
   } = data;
+
+  const dispatch = useAppDispatch()
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -55,8 +60,9 @@ const SideNewsBlock: React.FC<SideNewsBlockProps> = ({ data, onEdit }) => {
     onEdit(data);
   };
 
-  const handlePublish = (e:React.MouseEvent)=>{
-
+  const handlePublish = async (e:React.MouseEvent)=>{
+    dispatch(publishArticle({id:id}))
+    // console.log(data.id)
   }
 
   return (

@@ -22,7 +22,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/:slug" element={<CategoryNews/>}/>
-          <Route path="/news" element={<NewsDisplay/>}/>
+          <Route path="/news/:id" element={<NewsDisplay/>}/>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path='/admin/login' element={<AdminLogin/>} />
           <Route path='/admin' 
