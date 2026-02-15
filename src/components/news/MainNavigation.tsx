@@ -35,33 +35,32 @@ const MainNavigation = () => {
     <header className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
       <div className="container">
         <div className="flex items-center justify-between h-16">
-
           <div className="flex flex-row">
-             <img src="public/logo.png" style={{
-            width:"70px",
-            height:"70px"
-          }}/>
-          <a href="/" className="flex items-center gap-2">
-            {/* <div className="w-10 h-10 bg-accent rounded-sm flex items-center justify-center">
+            <img
+              src="public/logo.png"
+              style={{
+                width: "70px",
+                height: "70px",
+              }}
+            />
+            <a href="/" className="flex items-center gap-2">
+              {/* <div className="w-10 h-10 bg-accent rounded-sm flex items-center justify-center">
               <span className="text-accent-foreground font-headline font-bold text-xl">ਖ਼</span>
             </div> */}
-            <div className="hidden sm:block">
-              <h1 className="font-headline font-bold text-xl text-foreground leading-none">Punjab Click TV</h1>
-              <p className="text-[10px] text-muted-foreground">ਪੰਜਾਬ ਦੀ ਆਵਾਜ਼</p>
-            </div>
-          </a>
+              <div className="hidden sm:block">
+                <h1 className="font-headline font-bold text-sm sm:text-lg md:text-xl lg:text-sm text-foreground leading-none">
+                  Punjab Click TV
+                </h1>
+                {/* <p className="text-[10px] text-muted-foreground">ਪੰਜਾਬ ਦੀ ਆਵਾਜ਼</p> */}
+              </div>
+            </a>
           </div>
           {/* Logo */}
-         
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center">
             {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className="nav-link"
-              >
+              <a key={item.label} href={item.href} className="nav-link">
                 {item.label}
               </a>
             ))}
@@ -111,7 +110,11 @@ const MainNavigation = () => {
             </DropdownMenu>
 
             {/* Subscribe Button - Desktop */}
-            <Button variant="default" size="sm" className="hidden md:flex h-9 bg-accent hover:bg-accent/90 text-accent-foreground">
+            <Button
+              variant="default"
+              size="sm"
+              className="hidden md:flex h-9 bg-accent hover:bg-accent/90 text-accent-foreground"
+            >
               Subscribe
             </Button>
 
@@ -122,7 +125,11 @@ const MainNavigation = () => {
               className="lg:hidden h-9 w-9"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </Button>
           </div>
         </div>
@@ -141,7 +148,10 @@ const MainNavigation = () => {
                   {item.label}
                 </a>
               ))}
-              <Button variant="default" className="mt-4 bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Button
+                variant="default"
+                className="mt-4 bg-accent hover:bg-accent/90 text-accent-foreground"
+              >
                 Subscribe
               </Button>
             </div>
