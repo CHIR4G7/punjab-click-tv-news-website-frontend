@@ -37,7 +37,7 @@ const MainNavigation = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex flex-row">
             <img
-              src="public/logo.png"
+              src="/logo.png"
               style={{
                 width: "70px",
                 height: "70px",

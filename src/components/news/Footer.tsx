@@ -53,7 +53,7 @@ const Footer = () => {
                   ਖ਼
                 </span>
               </div> */}
-              <img src="public/logo.png" style={{
+              <img src="/logo.png" style={{
                 width:"70px",
                 height:"70px"
               }}/>
