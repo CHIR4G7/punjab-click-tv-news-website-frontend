@@ -17,7 +17,7 @@ interface ApiError {
 
 const apiClient = axios.create({
   baseURL: SERVER_BASE_URL,
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -38,7 +38,17 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
   (response:AxiosResponse) => response,
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
+
+    const config = error.config
+
+        // Retry logic for timeout errors
+    if (error.code === 'ECONNABORTED' && !config._retry) {
+      config._retry = true;
+      config.timeout = 45000; // Increase timeout for retry
+      return apiClient(config);
+    }
+
     const apiError: ApiError = {
       message:
         (error.response?.data as any)?.message ||
