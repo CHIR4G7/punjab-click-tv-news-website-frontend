@@ -27,9 +27,9 @@ const App = () => (
           <Route path='/admin/login' element={<AdminLogin/>} />
           <Route path='/admin' 
           element={
-          <ProtectedRoute>
+          
             <Admin/>
-            </ProtectedRoute>} />
+          }/>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
