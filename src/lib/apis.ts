@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 
 // const SERVER_BASE_URL = "http://localhost:3000";
-const SERVER_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL
+const SERVER_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL;
 
 interface ApiResponse<T> {
   data: T;
@@ -27,28 +27,18 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     console.log(
-      `Making a ${config.method?.toUpperCase()} request to : ${config?.url}`
+      `Making a ${config.method?.toUpperCase()} request to : ${config?.url}`,
     );
     return config;
   },
   (error: AxiosError) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 apiClient.interceptors.response.use(
-  (response:AxiosResponse) => response,
+  (response: AxiosResponse) => response,
   async (error: AxiosError) => {
-
-    const config = error.config
-
-        // Retry logic for timeout errors
-    if (error.code === 'ECONNABORTED' && !config._retry) {
-      config._retry = true;
-      config.timeout = 45000; // Increase timeout for retry
-      return apiClient(config);
-    }
-
     const apiError: ApiError = {
       message:
         (error.response?.data as any)?.message ||
@@ -58,17 +48,16 @@ apiClient.interceptors.response.use(
       code: error.code,
     };
     return Promise.reject(apiError);
-  }
+  },
 );
 
 // A function to call the apiCall
 export const makeApiRequest = async <T>(
   url: string,
   method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
-  data?: any
+  data?: any,
 ): Promise<ApiResponse<T>> => {
   try {
-
     const response: AxiosResponse<T> = await apiClient({
       url,
       method,
@@ -80,16 +69,6 @@ export const makeApiRequest = async <T>(
       message: "Request Successful!",
     };
   } catch (error) {
-    console.log(error)
-    if (error instanceof Error) {
-      throw {
-        message: error.message,
-        status: (error as any).status || 500,
-      } as ApiError;
-    }
-    throw {
-      message: error.message,
-      status: 500,
-    } as ApiError;
+    throw error;
   }
 };

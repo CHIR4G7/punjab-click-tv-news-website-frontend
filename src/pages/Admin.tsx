@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { logout } from "@/store/auth/authSlice";
 import { useNavigate } from "react-router-dom";
 import { makeApiRequest } from "@/lib/apis";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,7 @@ import { ColorRing } from "react-loader-spinner";
 const Admin: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { user } = useAppSelector((state) => state.auth);
+  
   const { toast } = useToast();
 
   const keyDrafted = createFeedKey({
@@ -545,9 +544,7 @@ const Admin: React.FC = () => {
                 </h1>
               </div>
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700 hidden sm:block">
-                  Welcome, {user?.username || "Admin"}
-                </span>
+               
                 <Button
                   onClick={handleLogout}
                   variant="outline"
